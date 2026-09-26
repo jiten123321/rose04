@@ -307,7 +307,7 @@
   }
   function start(){
     if(running) return; running=true;
-    const n=innerWidth<380?3:innerWidth<600?4:6;
+    const n=1;
     for(let i=0;i<n;i++) setTimeout(()=>{const b=make(i);b.el.style.setProperty('--flap',b.flap+'s');pickTarget(b);bs.push(b);requestAnimationFrame(()=>b.el.classList.add('show'));},i*700);
     requestAnimationFrame(step);
   }
