@@ -35,7 +35,7 @@
   .stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;
     -webkit-mask-image:radial-gradient(ellipse 70% 68% at 50% 50%,#000 64%,transparent 100%);mask-image:radial-gradient(ellipse 70% 68% at 50% 50%,#000 64%,transparent 100%);
     filter:brightness(.25) blur(5px);transform:scale(1.04);transition:filter 1.6s ease .9s, transform 1.8s cubic-bezier(.2,.7,.2,1) .9s;}
-  .opened img{filter:none;transform:none;cursor:pointer;}
+  .opened img{filter:none;transform:none;}
   .door{position:absolute;top:4%;bottom:4%;width:46%;z-index:3;
     background:
       repeating-linear-gradient(112deg,rgba(255,255,255,.06) 0 2px,transparent 2px 19px),
@@ -65,15 +65,6 @@
   .cue{position:absolute;z-index:6;left:0;right:0;bottom:-2px;text-align:center;font-family:"Italiana",Georgia,serif;letter-spacing:.22em;text-transform:uppercase;font-size:13px;color:var(--gold);transition:opacity .5s;}
   .opened .cue{opacity:0;}
 
-  .pop{position:absolute;z-index:7;max-width:62%;transform:translate(-50%,-100%);padding:10px 14px;border-radius:14px;
-    background:rgba(28,15,23,.82);border:1px solid rgba(201,174,230,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-    font-style:italic;font-size:17px;line-height:1.4;text-align:center;color:var(--cream);box-shadow:0 10px 30px rgba(0,0,0,.4);
-    animation:pop 5s ease forwards;pointer-events:none;text-wrap:balance;}
-  @keyframes pop{0%{opacity:0;transform:translate(-50%,-80%) scale(.9)}8%{opacity:1;transform:translate(-50%,-100%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-135%)}}
-  .petal{position:absolute;z-index:6;width:16px;height:22px;border-radius:60% 60% 50% 50%/70% 70% 40% 40%;pointer-events:none;animation:drift 2.6s ease-out forwards;}
-  @keyframes drift{from{opacity:1;transform:translate(0,0) rotate(0)}to{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--rot))}}
-
-  .hint{text-align:center;color:var(--muted);font-style:italic;font-size:17px;margin-top:-10px;min-height:1.6em;transition:opacity .8s;}
 
   /* ---- letter ---- */
   .letter p{margin:0 0 16px;}
@@ -103,26 +94,22 @@
   @keyframes flap{from{transform:scaleX(1)}to{transform:scaleX(.18)}}
   @media (max-width:520px){
     body{font-size:18px;}
-    .pop{font-size:15px;max-width:78%;}
     .sign{font-size:40px;}
   }
   /* ---- phone polish ---- */
   button,.stage{-webkit-tap-highlight-color:transparent;}
   .stage{width:min(100%, calc(74svh * 1100 / 1376));margin-inline:auto;}
-  .hint{padding-inline:8px;}
   @media (max-width:520px){
     body{padding-block:calc(14px + env(safe-area-inset-top,0px)) calc(56px + env(safe-area-inset-bottom,0px));line-height:1.62;}
     main{gap:18px;}
     .eyebrow{font-size:11px;letter-spacing:.26em;}
     .name{font-size:clamp(64px,19vw,96px);}
     .cue{font-size:12px;letter-spacing:.16em;bottom:0;}
-    .hint{font-size:16px;margin-top:-6px;}
     .letter p:first-child{font-size:1.1em;}
     .hug{width:132px;height:132px;}
   }
   @media (max-width:360px){
     body{font-size:17px;}
-    .pop{font-size:14px;max-width:86%;padding:8px 10px;}
   }
   @media (orientation:landscape) and (max-height:500px){
     .stage{width:min(100%, calc(88svh * 1100 / 1376));}
@@ -169,7 +156,6 @@
     </button>
     <div class="cue" id="cue">Tap the bow to untie it</div>
   </div>
-  <div class="hint" id="hint">&nbsp;</div>
 
   <section class="letter">
     <p>You made it through another one.</p>
@@ -196,49 +182,12 @@
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ---- untie the gift ---- */
-  const stage=document.getElementById('stage'),bow=document.getElementById('bow'),hint=document.getElementById('hint');
+  const stage=document.getElementById('stage'),bow=document.getElementById('bow');
   let opened=false;
   function open(){
     if(opened) return; opened=true; stage.classList.add('opened');
-    setTimeout(()=>{hint.textContent='Now touch the flowers. They have things to say.';},reduce?0:2400);
   }
   bow.addEventListener('click',open);
-
-  /* ---- flowers that talk ---- */
-  const notes=[
-    "You're allowed to rest without earning it.",
-    "I like you most on your softest days.",
-    "Drink some water. Then tell me you did.",
-    "You're the calm part of my day.",
-    "Nothing needs fixing today. Including you.",
-    "Proud of you for getting through the heavy days.",
-    "Cranky or not, I'm always on your side.",
-    "One day I'll bring you these in person.",
-    "You deserve slow mornings and warm hands.",
-    "Smile a little. I'm thinking about you right now.",
-    "Peonies bloom slowly too. Take your time.",
-    "You + a blanket + me on call. Perfect evening."
-  ];
-  let order=[],pop=null;
-  const next=()=>{if(!order.length){order=notes.map((_,i)=>i).sort(()=>Math.random()-.5);}return notes[order.pop()];};
-  const petalCols=['#f6d3d8','#f2ad8f','#c9aee6','#fbeee2','#e8a3b5'];
-  stage.addEventListener('click',e=>{
-    if(!opened||e.target.closest('.bow')) return;
-    const b=stage.getBoundingClientRect();
-    let x=(e.clientX-b.left)/b.width*100, y=(e.clientY-b.top)/b.height*100;
-    if(pop) pop.remove();
-    pop=document.createElement('div');pop.className='pop';pop.textContent=next();
-    const lim=b.width<420?44:30;pop.style.left=Math.min(100-lim,Math.max(lim,x))+'%';pop.style.top=Math.max(18,y-3)+'%';
-    stage.appendChild(pop);
-    if(reduce) return;
-    for(let i=0;i<7;i++){
-      const p=document.createElement('span');p.className='petal';
-      p.style.left=x+'%';p.style.top=y+'%';p.style.background=petalCols[i%petalCols.length];
-      p.style.setProperty('--dx',(Math.random()*160-80)+'px');p.style.setProperty('--dy',(Math.random()*120+40)+'px');p.style.setProperty('--rot',(Math.random()*540-270)+'deg');
-      p.style.animationDuration=(2+Math.random()*1.4)+'s';
-      stage.appendChild(p);setTimeout(()=>p.remove(),3600);
-    }
-  });
 
   /* ---- fireflies ---- */
   const cv=document.getElementById('flies'),c=cv.getContext('2d');let W,H,flies=[];
