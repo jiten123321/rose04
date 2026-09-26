@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1c0f17">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Ladoo's Night Bouquet</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Italiana&family=Mrs+Saint+Delafield&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
@@ -93,10 +94,39 @@
   .hrt{position:fixed;z-index:9;pointer-events:none;color:var(--peach);font-family:Georgia,serif;animation:fly 1.6s ease-out forwards;}
   @keyframes fly{from{opacity:1;transform:translate(-50%,-50%) scale(.6)}to{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.3)}}
 
+  .bfly{position:fixed;left:0;top:0;z-index:8;pointer-events:none;will-change:transform;opacity:0;transition:opacity 1.2s ease;}
+  .bfly.show{opacity:1;}
+  .bfly svg{display:block;width:100%;height:auto;overflow:visible;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35));}
+  .bfly .wl,.bfly .wr{transform-box:fill-box;animation:flap var(--flap,.2s) ease-in-out infinite alternate;}
+  .bfly .wl{transform-origin:right center;}
+  .bfly .wr{transform-origin:left center;}
+  @keyframes flap{from{transform:scaleX(1)}to{transform:scaleX(.18)}}
   @media (max-width:520px){
     body{font-size:18px;}
     .pop{font-size:15px;max-width:78%;}
     .sign{font-size:40px;}
+  }
+  /* ---- phone polish ---- */
+  button,.stage{-webkit-tap-highlight-color:transparent;}
+  .stage{width:min(100%, calc(74svh * 1100 / 1376));margin-inline:auto;}
+  .hint{padding-inline:8px;}
+  @media (max-width:520px){
+    body{padding-block:calc(14px + env(safe-area-inset-top,0px)) calc(56px + env(safe-area-inset-bottom,0px));line-height:1.62;}
+    main{gap:18px;}
+    .eyebrow{font-size:11px;letter-spacing:.26em;}
+    .name{font-size:clamp(64px,19vw,96px);}
+    .cue{font-size:12px;letter-spacing:.16em;bottom:0;}
+    .hint{font-size:16px;margin-top:-6px;}
+    .letter p:first-child{font-size:1.1em;}
+    .hug{width:132px;height:132px;}
+  }
+  @media (max-width:360px){
+    body{font-size:17px;}
+    .pop{font-size:14px;max-width:86%;padding:8px 10px;}
+  }
+  @media (orientation:landscape) and (max-height:500px){
+    .stage{width:min(100%, calc(88svh * 1100 / 1376));}
+    .name{font-size:64px;}
   }
   @media (prefers-reduced-motion:reduce){
     *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.2s!important;transition-delay:0s!important;}
@@ -198,7 +228,7 @@
     let x=(e.clientX-b.left)/b.width*100, y=(e.clientY-b.top)/b.height*100;
     if(pop) pop.remove();
     pop=document.createElement('div');pop.className='pop';pop.textContent=next();
-    pop.style.left=Math.min(70,Math.max(30,x))+'%';pop.style.top=Math.max(18,y-3)+'%';
+    const lim=b.width<420?44:30;pop.style.left=Math.min(100-lim,Math.max(lim,x))+'%';pop.style.top=Math.max(18,y-3)+'%';
     stage.appendChild(pop);
     if(reduce) return;
     for(let i=0;i<7;i++){
@@ -259,6 +289,75 @@
   hug.addEventListener('contextmenu',e=>e.preventDefault());
   hug.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();start();}});
   hug.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();stop();}});
+})();
+</script>
+<script>
+(function(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const stage=document.getElementById('stage');
+  const kinds=[
+    ['#c9aee6','#7b4fb0','#f5ecff'],['#f2ad8f','#b8553a','#ffe9dc'],['#f6d3d8','#b54f6d','#fff3f5'],
+    ['#f3c776','#a86a1c','#fff5da'],['#a9c3f0','#4a63b8','#eef3ff']
+  ];
+  const wing=(id,c)=>`<defs><radialGradient id="g${id}" cx="1" cy=".5" r="1.1"><stop offset="0" stop-color="${c[1]}"/><stop offset=".55" stop-color="${c[0]}"/><stop offset="1" stop-color="${c[2]}"/></radialGradient></defs>
+    <path d="M0 -2 C-5 -17 -21 -19 -21 -7 C-21 1 -11 2 0 0Z" fill="url(#g${id})" stroke="${c[1]}" stroke-width=".6"/>
+    <path d="M0 0 C-10 2 -17 12 -10 16 C-4 18 -1 9 0 2Z" fill="url(#g${id})" stroke="${c[1]}" stroke-width=".6"/>
+    <circle cx="-14" cy="-9" r="2" fill="${c[2]}" opacity=".85"/><circle cx="-8" cy="10" r="1.4" fill="${c[2]}" opacity=".8"/>`;
+  function make(i){
+    const c=kinds[i%kinds.length], el=document.createElement('div'); el.className='bfly';
+    const size=38+Math.random()*20; el.style.width=size+'px';
+    el.innerHTML=`<svg viewBox="-22 -20 44 40" aria-hidden="true">
+      <g class="wl">${wing('a'+i,c)}</g>
+      <g class="wr"><g transform="scale(-1,1)">${wing('b'+i,c)}</g></g>
+      <ellipse cx="0" cy="1" rx="1.5" ry="8" fill="#2a1523"/>
+      <path d="M-.5 -7 C-2 -12 -4 -14 -5 -15 M.5 -7 C2 -12 4 -14 5 -15" stroke="#2a1523" stroke-width=".7" fill="none"/>
+    </svg>`;
+    document.body.appendChild(el);
+    const W=innerWidth,H=innerHeight, side=Math.random()<.5;
+    return {el,size,x:side?-40:W+40,y:H*(.2+Math.random()*.6),a:side?0:Math.PI,sp:1.1+Math.random()*.8,t:Math.random()*100,
+      target:null,land:null,rest:0,flap:.16+Math.random()*.08};
+  }
+  function pickTarget(b){
+    const r=stage.getBoundingClientRect();
+    if(Math.random()<.45 && r.bottom>0 && r.top<innerHeight){
+      b.land={fx:.2+Math.random()*.6, fy:.3+Math.random()*.3}; b.target=null;
+    } else { b.land=null; b.target={x:40+Math.random()*(innerWidth-80), y:40+Math.random()*(innerHeight-80)}; }
+  }
+  let bs=[],running=false;
+  function step(){
+    const r=stage.getBoundingClientRect();
+    for(const b of bs){
+      b.t+=.05;
+      let tx,ty;
+      if(b.land){tx=r.left+b.land.fx*r.width; ty=r.top+b.land.fy*r.height;}
+      else if(b.target){tx=b.target.x;ty=b.target.y;}
+      else {pickTarget(b);continue;}
+      const dx=tx-b.x, dy=ty-b.y, d=Math.hypot(dx,dy);
+      if(b.rest>0){
+        b.rest--; b.x=tx; b.y=ty;
+        if(b.rest===0){b.el.style.setProperty('--flap',b.flap+'s');b.land=null;pickTarget(b);if(b.land) b.land=null, b.target={x:Math.random()*innerWidth,y:Math.random()*innerHeight*.5};}
+      } else if(d<14){
+        if(b.land){b.rest=160+Math.random()*220|0;b.el.style.setProperty('--flap','.9s');}
+        else pickTarget(b);
+      } else {
+        const want=Math.atan2(dy,dx); let diff=want-b.a; diff=Math.atan2(Math.sin(diff),Math.cos(diff));
+        b.a+=diff*.05+Math.sin(b.t*1.7)*.06;
+        const sp=b.sp*(d<120?Math.max(.4,d/120):1);
+        b.x+=Math.cos(b.a)*sp; b.y+=Math.sin(b.a)*sp+Math.sin(b.t*3)*.6;
+      }
+      const rot=(b.rest>0?Math.sin(b.t*.6)*8:b.a*180/Math.PI+90);
+      b.el.style.transform=`translate(${b.x-b.size/2}px,${b.y-b.size/2}px) rotate(${rot}deg)`;
+    }
+    requestAnimationFrame(step);
+  }
+  function start(){
+    if(running) return; running=true;
+    const n=innerWidth<380?3:innerWidth<600?4:6;
+    for(let i=0;i<n;i++) setTimeout(()=>{const b=make(i);b.el.style.setProperty('--flap',b.flap+'s');pickTarget(b);bs.push(b);requestAnimationFrame(()=>b.el.classList.add('show'));},i*700);
+    requestAnimationFrame(step);
+  }
+  if(stage.classList.contains('opened')) start();
+  else new MutationObserver((m,o)=>{if(stage.classList.contains('opened')){o.disconnect();setTimeout(start,1400);}}).observe(stage,{attributes:true,attributeFilter:['class']});
 })();
 </script>
 </body>
